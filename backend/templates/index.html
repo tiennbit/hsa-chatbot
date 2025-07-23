@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}HSA Chatbot - Trang chủ{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="jumbotron">
+                <h1 class="display-4">🎓 HSA Chatbot</h1>
+                <p class="lead">Hệ thống hỗ trợ thí sinh tham dự kỳ thi HSA của Đại học Quốc gia Hà Nội</p>
+                <hr class="my-4">
+                <p>Chatbot thông minh giúp bạn tìm hiểu thông tin về kỳ thi HSA, hướng dẫn đăng ký, và trả lời các câu hỏi thường gặp.</p>
+                
+                {% if current_user.is_authenticated %}
+                    <a class="btn btn-primary btn-lg" href="{{ url_for('chat.chatbot') }}" role="button">
+                        <i class="fas fa-comments"></i> Bắt đầu trò chuyện
+                    </a>
+                {% else %}
+                    <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}" role="button">
+                        <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                    </a>
+                    <a class="btn btn-outline-secondary btn-lg ml-2" href="{{ url_for('auth.register') }}" role="button">
+                        <i class="fas fa-user-plus"></i> Đăng ký
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Thông tin HSA</h5>
+                    <p class="card-text">Tìm hiểu về kỳ thi HSA, cấu trúc đề thi, và các thông tin quan trọng khác.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-question-circle fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Hướng dẫn</h5>
+                    <p class="card-text">Hướng dẫn chi tiết về quy trình đăng ký, chuẩn bị hồ sơ và tham dự thi.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-book fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">Tài liệu học tập</h5>
+                    <p class="card-text">Truy cập các tài liệu học tập, đề thi mẫu và tài nguyên hữu ích.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

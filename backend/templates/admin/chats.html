@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý Chat - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Quản lý Chat Sessions</h1>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Tổng số Sessions</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_sessions }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Sessions Hôm Nay</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.today_sessions }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Tổng số Messages</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_messages }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-envelope fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Active Sessions</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_sessions }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Sessions Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách Chat Sessions</h6>
+        </div>
+        <div class="card-body">
+            {% if chat_sessions %}
+            <div class="table-responsive">
+                <table class="table table-bordered" id="chatSessionsTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Session ID</th>
+                            <th>Messages</th>
+                            <th>Created</th>
+                            <th>Last Activity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in chat_sessions %}
+                        <tr>
+                            <td>{{ session.id }}</td>
+                            <td>
+                                {% if session.user %}
+                                    <a href="{{ url_for('admin.view_user', user_id=session.user.id) }}">
+                                        {{ session.user.username }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Anonymous</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <code>{{ session.session_id[:20] }}...</code>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary">{{ session.message_count }}</span>
+                            </td>
+                            <td>{{ session.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>{{ session.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="viewSession({{ session.id }})">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteSession({{ session.id }})">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if pagination.pages > 1 %}
+            <nav aria-label="Chat sessions pagination">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.chats', page=pagination.prev_num) }}">Previous</a>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.chats', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.chats', page=pagination.next_num) }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-comments fa-3x text-gray-300 mb-3"></i>
+                <h5 class="text-gray-500">Chưa có chat sessions nào</h5>
+                <p class="text-gray-400">Khi người dùng bắt đầu chat, các sessions sẽ xuất hiện ở đây.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Session Details Modal -->
+<div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sessionModalLabel">Chi tiết Chat Session</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="sessionModalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewSession(sessionId) {
+    // Load session details via AJAX
+    fetch(`/admin/api/session/${sessionId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const messages = data.messages;
+                let html = '<div class="chat-messages">';
+                
+                messages.forEach(msg => {
+                    const isUser = msg.message_type === 'user';
+                    const sender = isUser ? 'User' : 'Bot';
+                    const bgClass = isUser ? 'bg-primary text-white' : 'bg-light';
+                    
+                    html += `
+                        <div class="message mb-3">
+                            <div class="d-flex ${isUser ? 'justify-content-end' : 'justify-content-start'}">
+                                <div class="message-content p-3 rounded ${bgClass}" style="max-width: 70%;">
+                                    <div class="message-header mb-2">
+                                        <small class="font-weight-bold">${sender}</small>
+                                        <small class="ml-2">${new Date(msg.created_at).toLocaleString()}</small>
+                                    </div>
+                                    <div class="message-text">${msg.content}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                document.getElementById('sessionModalBody').innerHTML = html;
+                $('#sessionModal').modal('show');
+            } else {
+                alert('Error loading session details');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading session details');
+        });
+}
+
+function deleteSession(sessionId) {
+    if (confirm('Bạn có chắc chắn muốn xóa session này? Hành động này không thể hoàn tác.')) {
+        fetch(`/admin/api/session/${sessionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error deleting session: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting session');
+        });
+    }
+}
+
+// Initialize DataTable
+$(document).ready(function() {
+    $('#chatSessionsTable').DataTable({
+        "order": [[4, "desc"]], // Sort by created date descending
+        "pageLength": 25,
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json"
+        }
+    });
+});
+</script>
+
+<style>
+.chat-messages {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.message-content {
+    word-wrap: break-word;
+}
+
+.message-text {
+    white-space: pre-wrap;
+}
+</style>
+{% endblock %} 
