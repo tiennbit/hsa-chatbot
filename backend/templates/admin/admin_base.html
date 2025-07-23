@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Admin Sidebar -->
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block admin-sidebar collapse">
+            <div class="position-sticky pt-3">
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>Quản trị</span>
+                </h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
+                            href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt fa-fw"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}"
+                            href="{{ url_for('admin.users') }}">
+                            <i class="fas fa-users fa-fw"></i> Người dùng
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.documents' %}active{% endif %}"
+                            href="{{ url_for('admin.documents') }}">
+                            <i class="fas fa-file-alt fa-fw"></i> Tài liệu
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.chats' %}active{% endif %}"
+                            href="{{ url_for('admin.chats') }}">
+                            <i class="fas fa-comments fa-fw"></i> Cuộc trò chuyện
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.analytics' %}active{% endif %}"
+                            href="{{ url_for('admin.analytics') }}">
+                            <i class="fas fa-chart-bar fa-fw"></i> Phân tích
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}"
+                            href="{{ url_for('admin.settings') }}">
+                            <i class="fas fa-cog fa-fw"></i> Cài đặt
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 admin-content">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

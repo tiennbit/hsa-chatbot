@@ -2,207 +2,82 @@
 
 {% block title %}HSA Chatbot - Trò chuyện{% endblock %}
 
+{% block body_class %}chat-page-active{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <!-- Chat Interface -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-robot"></i> HSA Chatbot
-                        <small class="float-right">Xin chào, {{ current_user.full_name }}!</small>
-                    </h5>
-                </div>
-                <div class="card-body" id="chat-container" style="height: 500px; overflow-y: auto;">
-                    <div id="chat-messages">
-                        <!-- Messages will be loaded here -->
+    <div class="row chat-page-container">
+
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-md-4 d-none d-md-block">
+            <div class="chat-sidebar h-100 p-3">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-user-circle me-2"></i>Chào, {{ current_user.full_name
+                            }}!</h5>
+                        <p class="card-text text-muted">Sẵn sàng giải đáp thắc mắc của bạn về kỳ thi HSA.</p>
                     </div>
                 </div>
-                <div class="card-footer">
+
+                <div class="card">
+                    <div class="card-header bg-transparent border-bottom-0">
+                        <h6 class="mb-0">
+                            <i class="fas fa-bolt me-2"></i>Câu hỏi nhanh
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <button class="list-group-item list-group-item-action quick-question"
+                                data-question="Thông tin chung về kỳ thi HSA?">
+                                Thông tin chung về kỳ thi HSA?
+                            </button>
+                            <button class="list-group-item list-group-item-action quick-question"
+                                data-question="Làm thế nào để đăng ký thi?">
+                                Làm thế nào để đăng ký thi?
+                            </button>
+                            <button class="list-group-item list-group-item-action quick-question"
+                                data-question="Cấu trúc của đề thi HSA như thế nào?">
+                                Cấu trúc của đề thi HSA?
+                            </button>
+                            <button class="list-group-item list-group-item-action quick-question"
+                                data-question="Các mốc thời gian quan trọng của kỳ thi?">
+                                Các mốc thời gian quan trọng?
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="col-lg-9 col-md-8">
+            <div class="d-flex flex-column h-100 bg-white rounded shadow-sm">
+                <!-- Chat Messages -->
+                <div id="chat-container" class="flex-grow-1 p-4">
+                    <div id="chat-messages" class="d-flex flex-column">
+                        <!-- Messages will be dynamically loaded here -->
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <div class="p-3 border-top">
                     <form id="chat-form">
                         <div class="input-group">
-                            <input type="text" id="message-input" class="form-control" placeholder="Nhập câu hỏi của bạn..." required>
-                            <div class="input-group-append">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-paper-plane"></i> Gửi
-                                </button>
-                            </div>
+                            <input type="text" id="message-input" class="form-control form-control-lg border-0"
+                                placeholder="Nhập câu hỏi của bạn ở đây..." autocomplete="off" required>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-        
-        <!-- Sidebar -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-info-circle"></i> Thông tin hữu ích
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <h6>📋 Chủ đề thường gặp:</h6>
-                        <div class="list-group list-group-flush">
-                            <button class="list-group-item list-group-item-action quick-question" data-question="Thông tin về kỳ thi HSA">
-                                Thông tin về kỳ thi HSA
-                            </button>
-                            <button class="list-group-item list-group-item-action quick-question" data-question="Cách đăng ký thi HSA">
-                                Cách đăng ký thi HSA
-                            </button>
-                            <button class="list-group-item list-group-item-action quick-question" data-question="Cấu trúc đề thi HSA">
-                                Cấu trúc đề thi HSA
-                            </button>
-                            <button class="list-group-item list-group-item-action quick-question" data-question="Thời gian thi HSA">
-                                Thời gian thi HSA
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <h6>📊 Thống kê:</h6>
-                        <small class="text-muted">
-                            <div>Tin nhắn hôm nay: <span id="today-messages">0</span></div>
-                            <div>Phiên trò chuyện: <span id="session-count">1</span></div>
-                        </small>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
+{% endblock %}
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const chatForm = document.getElementById('chat-form');
-    const messageInput = document.getElementById('message-input');
-    const chatMessages = document.getElementById('chat-messages');
-    const chatContainer = document.getElementById('chat-container');
-    
-    // Load chat history
-    loadChatHistory();
-    
-    // Handle form submission
-    chatForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const message = messageInput.value.trim();
-        if (message) {
-            sendMessage(message);
-            messageInput.value = '';
-        }
-    });
-    
-    // Handle quick questions
-    document.querySelectorAll('.quick-question').forEach(button => {
-        button.addEventListener('click', function() {
-            const question = this.dataset.question;
-            sendMessage(question);
-        });
-    });
-    
-    function sendMessage(message) {
-        // Add user message to chat
-        addMessage(message, 'user');
-        
-        // Send to server
-        fetch('/chat/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message: message })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                addMessage('Xin lỗi, có lỗi xảy ra: ' + data.error, 'bot');
-            } else {
-                addMessage(data.response, 'bot');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            addMessage('Xin lỗi, có lỗi xảy ra khi kết nối với máy chủ.', 'bot');
-        });
-    }
-    
-    function addMessage(content, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message mb-3`;
-        
-        const icon = sender === 'user' ? 'fas fa-user' : 'fas fa-robot';
-        const bgClass = sender === 'user' ? 'bg-primary text-white' : 'bg-light';
-        const alignClass = sender === 'user' ? 'text-right' : 'text-left';
-        
-        messageDiv.innerHTML = `
-            <div class="${alignClass}">
-                <div class="d-inline-block ${bgClass} rounded p-2" style="max-width: 70%;">
-                    <i class="${icon} mr-2"></i>
-                    ${content}
-                </div>
-            </div>
-        `;
-        
-        chatMessages.appendChild(messageDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-    
-    function loadChatHistory() {
-        fetch('/chat/api/chat/history')
-        .then(response => response.json())
-        .then(data => {
-            if (data.messages && data.messages.length > 0) {
-                data.messages.forEach(msg => {
-                    addMessage(msg.content, msg.sender);
-                });
-            } else {
-                addMessage('Xin chào! Tôi là HSA Chatbot, tôi có thể giúp gì cho bạn?', 'bot');
-            }
-        })
-        .catch(error => {
-            console.error('Error loading chat history:', error);
-            addMessage('Xin chào! Tôi là HSA Chatbot, tôi có thể giúp gì cho bạn?', 'bot');
-        });
-    }
-});
-</script>
-
-<style>
-.message {
-    word-wrap: break-word;
-}
-
-.user-message .bg-primary {
-    background-color: #007bff !important;
-}
-
-.bot-message .bg-light {
-    background-color: #f8f9fa !important;
-    border: 1px solid #dee2e6;
-}
-
-#chat-container {
-    scrollbar-width: thin;
-    scrollbar-color: #888 #f1f1f1;
-}
-
-#chat-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-#chat-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-#chat-container::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-}
-
-#chat-container::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-</style>
-{% endblock %} 
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

@@ -297,9 +297,16 @@ def chats():
     sessions = query.order_by(desc(ChatSession.last_activity)).paginate(
         page=page, per_page=20, error_out=False
     )
-    
+    # Thêm biến stats cho template
+    stats = {
+        'total_sessions': ChatSession.query.count(),
+        'today_sessions': ChatSession.query.filter(ChatSession.created_at >= datetime.utcnow().date()).count(),
+        'total_messages': ChatMessage.query.count(),
+        'active_sessions': ChatSession.query.filter(ChatSession.last_activity >= datetime.utcnow() - timedelta(hours=1)).count()
+    }
     return render_template('admin/chats.html',
-                         sessions=sessions,
+                         chat_sessions=sessions,
+                         stats=stats,
                          search=search,
                          date_from=date_from,
                          date_to=date_to)
@@ -419,13 +426,15 @@ def analytics():
                                         .limit(100).all()
     
     # User engagement
-    user_engagement = db.session.query(
+    user_engagement = (db.session.query(
         User.grade,
-        func.count(User.id).label('user_count'),
-        func.avg(func.count(ChatMessage.id)).label('avg_messages')
-    ).join(ChatSession).join(ChatMessage)\
-     .filter(User.role == 'student')\
-     .group_by(User.grade).all()
+        func.count(func.distinct(User.id)).label('user_count'),
+        (func.count(ChatMessage.id) / func.count(func.distinct(User.id))).label('avg_messages')
+    ).select_from(User)
+    .join(ChatSession, ChatSession.user_id == User.id)
+    .join(ChatMessage, ChatMessage.session_id == ChatSession.id)
+    .filter(User.role == 'student')
+    .group_by(User.grade).all())
     
     return render_template('admin/analytics.html',
                          monthly_stats=monthly_stats,
@@ -742,4 +751,3 @@ def upload_document():
     except Exception as e:
         flash(f'Có lỗi xảy ra khi tải lên tài liệu: {str(e)}', 'error')
         return redirect(url_for('admin.documents'))
-

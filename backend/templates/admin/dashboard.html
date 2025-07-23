@@ -1,252 +1,79 @@
-{% extends "base.html" %}
+{% extends "admin/admin_base.html" %}
 
 {% block title %}Admin Dashboard - HSA Chatbot{% endblock %}
 
-{% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-            <div class="position-sticky pt-3">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('admin.dashboard') }}">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.users') }}">
-                            <i class="fas fa-users"></i> Quản lý người dùng
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.documents') }}">
-                            <i class="fas fa-file-alt"></i> Quản lý tài liệu
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.chats') }}">
-                            <i class="fas fa-comments"></i> Quản lý chat
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.analytics') }}">
-                            <i class="fas fa-chart-bar"></i> Phân tích
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.settings') }}">
-                            <i class="fas fa-cog"></i> Cài đặt
-                        </a>
-                    </li>
-                </ul>
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('admin.export_data') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-download me-2"></i>Export
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card border-left-primary">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs text-primary text-uppercase mb-1">Tổng người dùng</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ stats.total_users }}</div>
+                    </div>
+                    <div class="col-auto icon-circle">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Main content -->
-        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Dashboard</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary">Print</button>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card border-left-success">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs text-success text-uppercase mb-1">Tổng tài liệu</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ stats.total_documents }}</div>
+                    </div>
+                    <div class="col-auto icon-circle">
+                        <i class="fas fa-file-alt"></i>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Statistics Cards -->
-            <div class="row">
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-primary shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Tổng người dùng
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_users }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-users fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card border-left-info">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs text-info text-uppercase mb-1">Phiên chat hôm nay</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ stats.active_sessions_today }}</div>
                     </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-success shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Tổng tài liệu
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_documents }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-file-alt fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-info shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        Phiên chat hôm nay
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_sessions_today }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-comments fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-warning shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Tổng tin nhắn
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_messages }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-comment fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="col-auto icon-circle">
+                        <i class="fas fa-comments"></i>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Document Status -->
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Trạng thái tài liệu</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4 text-center">
-                                    <div class="text-success">
-                                        <i class="fas fa-check-circle fa-3x"></i>
-                                        <h4>{{ stats.documents_processed }}</h4>
-                                        <small>Đã xử lý</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <div class="text-warning">
-                                        <i class="fas fa-clock fa-3x"></i>
-                                        <h4>{{ stats.documents_processing }}</h4>
-                                        <small>Đang xử lý</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <div class="text-danger">
-                                        <i class="fas fa-exclamation-triangle fa-3x"></i>
-                                        <h4>{{ stats.documents_error }}</h4>
-                                        <small>Lỗi</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card border-left-warning">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs text-warning text-uppercase mb-1">Tổng tin nhắn</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ stats.total_messages }}</div>
                     </div>
-                </div>
-
-                <div class="col-lg-6">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Top người dùng hoạt động</h6>
-                        </div>
-                        <div class="card-body">
-                            {% if top_users %}
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Tên</th>
-                                                <th>Tin nhắn</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for user in top_users %}
-                                            <tr>
-                                                <td>{{ user.full_name }}</td>
-                                                <td>{{ user.message_count }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <p class="text-muted">Chưa có dữ liệu</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activities -->
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Phiên chat gần đây</h6>
-                        </div>
-                        <div class="card-body">
-                            {% if recent_sessions %}
-                                <div class="list-group list-group-flush">
-                                    {% for session in recent_sessions %}
-                                    <div class="list-group-item">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h6 class="mb-1">{{ session.user.full_name if session.user else 'Anonymous' }}</h6>
-                                            <small>{{ session.last_activity.strftime('%H:%M') }}</small>
-                                        </div>
-                                        <p class="mb-1">{{ session.message_count }} tin nhắn</p>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <p class="text-muted">Chưa có phiên chat nào</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-6">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Tài liệu gần đây</h6>
-                        </div>
-                        <div class="card-body">
-                            {% if recent_documents %}
-                                <div class="list-group list-group-flush">
-                                    {% for doc in recent_documents %}
-                                    <div class="list-group-item">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h6 class="mb-1">{{ doc.title or doc.original_filename }}</h6>
-                                            <small>{{ doc.created_at.strftime('%d/%m/%Y') }}</small>
-                                        </div>
-                                        <p class="mb-1">{{ doc.get_status_display() }}</p>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <p class="text-muted">Chưa có tài liệu nào</p>
-                            {% endif %}
-                        </div>
+                    <div class="col-auto icon-circle">
+                        <i class="fas fa-comment-dots"></i>
                     </div>
                 </div>
             </div>
@@ -254,52 +81,156 @@
     </div>
 </div>
 
-<style>
-.sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 100;
-    padding: 48px 0 0;
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-}
+<!-- Charts and Recent Activities -->
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header main-header">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line me-2"></i>Hoạt động 7 ngày qua
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="activityChart" data-daily-stats="{{ daily_stats|tojson }}"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header main-header">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-tasks me-2"></i>Trạng thái tài liệu</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="documentStatusChart"
+                    data-doc-stats="{{ {'processed': stats.documents_processed, 'processing': stats.documents_processing, 'error': stats.documents_error}|tojson }}"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
-.sidebar .nav-link {
-    font-weight: 500;
-    color: #333;
-}
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header main-header">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-user-friends me-2"></i>Top người dùng
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if top_users %}
+                <ul class="list-group list-group-flush">
+                    {% for user in top_users %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ user.full_name }}
+                        <span class="badge bg-primary rounded-pill">{{ user.message_count }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">Chưa có dữ liệu.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header main-header">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-history me-2"></i>Hoạt động gần đây</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_sessions %}
+                <ul class="list-group list-group-flush">
+                    {% for session in recent_sessions %}
+                    <li class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <p class="mb-1"><i class="fas fa-user me-2 text-muted"></i>{{ session.user.full_name if
+                                session.user else 'Anonymous' }}</p>
+                            <small class="text-muted">{{ session.last_activity.strftime('%H:%M %d/%m') }}</small>
+                        </div>
+                        <small class="text-muted">{{ session.message_count }} tin nhắn trong phiên.</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">Chưa có hoạt động nào.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-.sidebar .nav-link.active {
-    color: #007bff;
-}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Daily Activity Chart
+        const activityChartEl = document.getElementById('activityChart');
+        const activityCtx = activityChartEl.getContext('2d');
+        const dailyStats = JSON.parse(activityChartEl.dataset.dailyStats);
 
-.sidebar .nav-link:hover {
-    color: #007bff;
-}
+        new Chart(activityCtx, {
+            type: 'line',
+            data: {
+                labels: dailyStats.map(d => d.date).reverse(),
+                datasets: [{
+                    label: 'Tin nhắn',
+                    data: dailyStats.map(d => d.messages).reverse(),
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Phiên chat',
+                    data: dailyStats.map(d => d.new_sessions).reverse(),
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
 
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
+        // Document Status Chart
+        const docStatusChartEl = document.getElementById('documentStatusChart');
+        const docStatusCtx = docStatusChartEl.getContext('2d');
+        const docStats = JSON.parse(docStatusChartEl.dataset.docStats);
 
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
-.text-gray-300 {
-    color: #dddfeb !important;
-}
-
-.text-gray-800 {
-    color: #5a5c69 !important;
-}
-</style>
-{% endblock %} 
+        new Chart(docStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Đã xử lý', 'Đang xử lý', 'Lỗi'],
+                datasets: [{
+                    label: 'Trạng thái tài liệu',
+                    data: [docStats.processed, docStats.processing, docStats.error],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

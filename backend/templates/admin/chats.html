@@ -108,11 +108,11 @@
                             <td>{{ session.id }}</td>
                             <td>
                                 {% if session.user %}
-                                    <a href="{{ url_for('admin.view_user', user_id=session.user.id) }}">
-                                        {{ session.user.username }}
-                                    </a>
+                                <a href="{{ url_for('admin.user_detail', user_id=session.user.id) }}">
+                                    {{ session.user.username }}
+                                </a>
                                 {% else %}
-                                    <span class="text-muted">Anonymous</span>
+                                <span class="text-muted">Anonymous</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -138,36 +138,37 @@
             </div>
 
             <!-- Pagination -->
-            {% if pagination.pages > 1 %}
+            {% if chat_sessions.pages > 1 %}
             <nav aria-label="Chat sessions pagination">
                 <ul class="pagination justify-content-center">
-                    {% if pagination.has_prev %}
+                    {% if chat_sessions.has_prev %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin.chats', page=pagination.prev_num) }}">Previous</a>
+                        <a class="page-link"
+                            href="{{ url_for('admin.chats', page=chat_sessions.prev_num) }}">Previous</a>
                     </li>
                     {% endif %}
 
-                    {% for page_num in pagination.iter_pages() %}
-                        {% if page_num %}
-                            {% if page_num != pagination.page %}
-                            <li class="page-item">
-                                <a class="page-link" href="{{ url_for('admin.chats', page=page_num) }}">{{ page_num }}</a>
-                            </li>
-                            {% else %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ page_num }}</span>
-                            </li>
-                            {% endif %}
-                        {% else %}
-                            <li class="page-item disabled">
-                                <span class="page-link">...</span>
-                            </li>
-                        {% endif %}
+                    {% for page_num in chat_sessions.iter_pages() %}
+                    {% if page_num %}
+                    {% if page_num != chat_sessions.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.chats', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
                     {% endfor %}
 
-                    {% if pagination.has_next %}
+                    {% if chat_sessions.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin.chats', page=pagination.next_num) }}">Next</a>
+                        <a class="page-link" href="{{ url_for('admin.chats', page=chat_sessions.next_num) }}">Next</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -186,7 +187,8 @@
 </div>
 
 <!-- Session Details Modal -->
-<div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
+<div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -206,21 +208,21 @@
 </div>
 
 <script>
-function viewSession(sessionId) {
-    // Load session details via AJAX
-    fetch(`/admin/api/session/${sessionId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const messages = data.messages;
-                let html = '<div class="chat-messages">';
-                
-                messages.forEach(msg => {
-                    const isUser = msg.message_type === 'user';
-                    const sender = isUser ? 'User' : 'Bot';
-                    const bgClass = isUser ? 'bg-primary text-white' : 'bg-light';
-                    
-                    html += `
+    function viewSession(sessionId) {
+        // Load session details via AJAX
+        fetch(`/admin/api/session/${sessionId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const messages = data.messages;
+                    let html = '<div class="chat-messages">';
+
+                    messages.forEach(msg => {
+                        const isUser = msg.message_type === 'user';
+                        const sender = isUser ? 'User' : 'Bot';
+                        const bgClass = isUser ? 'bg-primary text-white' : 'bg-light';
+
+                        html += `
                         <div class="message mb-3">
                             <div class="d-flex ${isUser ? 'justify-content-end' : 'justify-content-start'}">
                                 <div class="message-content p-3 rounded ${bgClass}" style="max-width: 70%;">
@@ -233,68 +235,68 @@ function viewSession(sessionId) {
                             </div>
                         </div>
                     `;
-                });
-                
-                html += '</div>';
-                document.getElementById('sessionModalBody').innerHTML = html;
-                $('#sessionModal').modal('show');
-            } else {
+                    });
+
+                    html += '</div>';
+                    document.getElementById('sessionModalBody').innerHTML = html;
+                    $('#sessionModal').modal('show');
+                } else {
+                    alert('Error loading session details');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
                 alert('Error loading session details');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error loading session details');
-        });
-}
-
-function deleteSession(sessionId) {
-    if (confirm('Bạn có chắc chắn muốn xóa session này? Hành động này không thể hoàn tác.')) {
-        fetch(`/admin/api/session/${sessionId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Error deleting session: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error deleting session');
-        });
+            });
     }
-}
 
-// Initialize DataTable
-$(document).ready(function() {
-    $('#chatSessionsTable').DataTable({
-        "order": [[4, "desc"]], // Sort by created date descending
-        "pageLength": 25,
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json"
+    function deleteSession(sessionId) {
+        if (confirm('Bạn có chắc chắn muốn xóa session này? Hành động này không thể hoàn tác.')) {
+            fetch(`/admin/api/session/${sessionId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting session: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting session');
+                });
         }
+    }
+
+    // Initialize DataTable
+    $(document).ready(function () {
+        $('#chatSessionsTable').DataTable({
+            "order": [[4, "desc"]], // Sort by created date descending
+            "pageLength": 25,
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json"
+            }
+        });
     });
-});
 </script>
 
 <style>
-.chat-messages {
-    max-height: 400px;
-    overflow-y: auto;
-}
+    .chat-messages {
+        max-height: 400px;
+        overflow-y: auto;
+    }
 
-.message-content {
-    word-wrap: break-word;
-}
+    .message-content {
+        word-wrap: break-word;
+    }
 
-.message-text {
-    white-space: pre-wrap;
-}
+    .message-text {
+        white-space: pre-wrap;
+    }
 </style>
-{% endblock %} 
+{% endblock %}

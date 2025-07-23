@@ -1,0 +1,113 @@
+/* Admin Specific Styles */
+body {
+    background-color: #F3F4F6;
+    /* Lighter gray for admin background */
+}
+
+.admin-sidebar {
+    background-color: #1F2937;
+    /* Dark Gray */
+    color: #E5E7EB;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+.admin-sidebar .nav-link {
+    color: #D1D5DB;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.admin-sidebar .nav-link:hover {
+    background-color: #374151;
+    color: #FFFFFF;
+    border-left-color: var(--primary-color);
+}
+
+.admin-sidebar .nav-link.active {
+    background-color: #4F46E5;
+    color: #FFFFFF;
+    border-left-color: #FFFFFF;
+}
+
+.admin-sidebar .nav-link .fa-fw {
+    margin-right: 0.5rem;
+}
+
+.admin-content {
+    padding: 2rem;
+}
+
+.stat-card {
+    background-color: var(--card-background);
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+    position: relative;
+}
+
+.stat-card .icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    right: 1.5rem;
+    transform: translateY(-50%);
+    opacity: 0.2;
+    font-size: 2rem;
+}
+
+.stat-card.border-left-primary .icon-circle {
+    background-color: #4F46E5;
+    color: white;
+}
+
+.stat-card.border-left-success .icon-circle {
+    background-color: #10B981;
+    color: white;
+}
+
+.stat-card.border-left-info .icon-circle {
+    background-color: #3B82F6;
+    color: white;
+}
+
+.stat-card.border-left-warning .icon-circle {
+    background-color: #F59E0B;
+    color: white;
+}
+
+.stat-card .text-xs {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-card .h5 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.card-header.main-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+}
