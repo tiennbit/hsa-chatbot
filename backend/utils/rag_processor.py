@@ -458,8 +458,8 @@ Hãy trả lời bằng tiếng Việt và dựa trên thông tin trong các tà
         if chat_history:
             history_parts = []
             for msg in chat_history[-5:]:  # Last 5 messages
-                role = "Người dùng" if msg["type"] == "user" else "Trợ lý"
-                history_parts.append(f"{role}: {msg['content']}")
+                role = "Người dùng" if msg.get("message_type") == "user" else "Trợ lý"
+                history_parts.append(f"{role}: {msg.get('content', '')}")
             history_text = f"\n\nLịch sử trò chuyện:\n" + "\n".join(history_parts)
         
         prompt = f"""{system_prompt}
@@ -621,4 +621,3 @@ Trả lời:"""
             return f"Dựa trên thông tin tài liệu: {doc_content}...\n\nĐây là thông tin cơ bản về câu hỏi của bạn. Để biết thêm chi tiết, vui lòng tham khảo tài liệu chính thức."
         else:
             return "Xin chào! Tôi là trợ lý AI hỗ trợ thí sinh tham dự kỳ thi HSA. Hiện tại tôi chưa có đủ thông tin để trả lời câu hỏi của bạn. Bạn có thể hỏi về kỳ thi HSA, quy trình đăng ký, hoặc nội dung thi."
-

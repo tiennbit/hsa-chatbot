@@ -16,4 +16,6 @@ PyPDF2==3.0.1
 beautifulsoup4==4.13.4
 requests==2.32.3
 aiohttp==3.12.14
-bcrypt==4.3.0 
+bcrypt==4.3.0
+pdfplumber
+sentence-transformers

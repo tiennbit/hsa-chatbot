@@ -5,76 +5,49 @@
 {% block body_class %}chat-page-active{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row chat-page-container">
-
-        <!-- Sidebar -->
-        <div class="col-lg-3 col-md-4 d-none d-md-block">
-            <div class="chat-sidebar h-100 p-3">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title"><i class="fas fa-user-circle me-2"></i>Chào, {{ current_user.full_name
-                            }}!</h5>
-                        <p class="card-text text-muted">Sẵn sàng giải đáp thắc mắc của bạn về kỳ thi HSA.</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header bg-transparent border-bottom-0">
-                        <h6 class="mb-0">
-                            <i class="fas fa-bolt me-2"></i>Câu hỏi nhanh
-                        </h6>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="list-group list-group-flush">
-                            <button class="list-group-item list-group-item-action quick-question"
-                                data-question="Thông tin chung về kỳ thi HSA?">
-                                Thông tin chung về kỳ thi HSA?
-                            </button>
-                            <button class="list-group-item list-group-item-action quick-question"
-                                data-question="Làm thế nào để đăng ký thi?">
-                                Làm thế nào để đăng ký thi?
-                            </button>
-                            <button class="list-group-item list-group-item-action quick-question"
-                                data-question="Cấu trúc của đề thi HSA như thế nào?">
-                                Cấu trúc của đề thi HSA?
-                            </button>
-                            <button class="list-group-item list-group-item-action quick-question"
-                                data-question="Các mốc thời gian quan trọng của kỳ thi?">
-                                Các mốc thời gian quan trọng?
-                            </button>
-                        </div>
-                    </div>
+<div class="chat-layout">
+    <!-- Sidebar -->
+    <aside class="chat-sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="btn btn-primary w-100" id="new-chat-btn"><i class="fas fa-plus me-2"></i>Cuộc trò chuyện
+                mới</a>
+        </div>
+        <div class="sidebar-history">
+            <h6 class="text-muted">Lịch sử trò chuyện</h6>
+            <ul class="list-group list-group-flush" id="chat-history-list">
+                <!-- Chat history will be loaded here by JS -->
+            </ul>
+        </div>
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-user-circle fa-2x me-2"></i>
+                <div>
+                    <strong>{{ current_user.full_name }}</strong>
+                    <a href="{{ url_for('auth.logout') }}" class="d-block text-muted small">Đăng xuất</a>
                 </div>
             </div>
         </div>
+    </aside>
 
-        <!-- Chat Interface -->
-        <div class="col-lg-9 col-md-8">
-            <div class="d-flex flex-column h-100 bg-white rounded shadow-sm">
-                <!-- Chat Messages -->
-                <div id="chat-container" class="flex-grow-1 p-4">
-                    <div id="chat-messages" class="d-flex flex-column">
-                        <!-- Messages will be dynamically loaded here -->
-                    </div>
-                </div>
-
-                <!-- Message Input -->
-                <div class="p-3 border-top">
-                    <form id="chat-form">
-                        <div class="input-group">
-                            <input type="text" id="message-input" class="form-control form-control-lg border-0"
-                                placeholder="Nhập câu hỏi của bạn ở đây..." autocomplete="off" required>
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+    <!-- Main Chat Area -->
+    <main class="chat-main">
+        <div id="chat-container">
+            <div id="chat-messages">
+                <!-- Messages will be dynamically loaded here -->
             </div>
         </div>
-
-    </div>
+        <div class="chat-input-area">
+            <form id="chat-form" class="w-100">
+                <div class="input-group">
+                    <input type="text" id="message-input" class="form-control"
+                        placeholder="Hỏi bất cứ điều gì về kỳ thi HSA..." autocomplete="off" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
 </div>
 {% endblock %}
 
