@@ -199,6 +199,12 @@ body {
     transform: translateX(4px);
 }
 
+.list-group-item.active-session {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
 /* Typing Indicator */
 #typing-indicator .message-content {
     padding: 0.75rem 1.25rem;

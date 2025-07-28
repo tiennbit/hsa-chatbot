@@ -453,6 +453,7 @@ def settings():
         'DEEPSEEK_API_KEY': os.getenv('DEEPSEEK_API_KEY', ''),
         'EMBEDDING_MODEL': os.getenv('EMBEDDING_MODEL', 'sentence-transformers/all-MiniLM-L6-v2'),
         'DEFAULT_LLM_PROVIDER': os.getenv('DEFAULT_LLM_PROVIDER', 'gemini'),
+        'GEMINI_MODEL': os.getenv('GEMINI_MODEL', 'gemini-1.5-flash'),
         'RESPONSE_MAX_TOKENS': int(os.getenv('RESPONSE_MAX_TOKENS', 1000)),
         'TEMPERATURE': float(os.getenv('TEMPERATURE', 0.7)),
         'MAX_CONTENT_LENGTH': int(os.getenv('MAX_CONTENT_LENGTH', 52428800))
@@ -523,6 +524,7 @@ def update_system_settings():
         # Update system settings
         settings = {
             'DEFAULT_LLM_PROVIDER': request.form.get('default_llm_provider', 'gemini'),
+            'GEMINI_MODEL': request.form.get('gemini_model', 'gemini-1.5-flash'),
             'EMBEDDING_MODEL': request.form.get('embedding_model', 'sentence-transformers/all-MiniLM-L6-v2'),
             'RESPONSE_MAX_TOKENS': request.form.get('response_max_tokens', '1000'),
             'TEMPERATURE': request.form.get('temperature', '0.7'),

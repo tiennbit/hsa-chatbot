@@ -33,23 +33,23 @@ document.addEventListener('DOMContentLoaded', function () {
         displayMessage(message, 'user');
         showTypingIndicator();
 
-        // If there's no active session, create one first
-        if (!currentSessionId) {
-            fetch('/api/chat/session', { method: 'POST' })
-                .then(response => response.json())
-                .then(sessionData => {
-                    currentSessionId = sessionData.session_id;
-                    sendChatMessage(message);
-                    loadChatSessions(); // Refresh history
-                })
-                .catch(handleError);
-        } else {
-            sendChatMessage(message);
-        }
+        const sessionPromise = currentSessionId
+            ? Promise.resolve({ session_id: currentSessionId })
+            : fetch('/api/chat/session', { method: 'POST' }).then(response => response.json());
+
+        sessionPromise
+            .then(sessionData => {
+                currentSessionId = sessionData.session_id;
+                return sendChatMessage(message);
+            })
+            .then(() => {
+                loadChatSessions();
+            })
+            .catch(handleError);
     }
 
     function sendChatMessage(message) {
-        fetch(`/api/chat/${currentSessionId}`, {
+        return fetch(`/api/chat/${currentSessionId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: message })
@@ -71,19 +71,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     data.sessions.forEach(session => {
                         const li = document.createElement('li');
                         li.className = 'list-group-item list-group-item-action';
-                        li.textContent = session.title || `Session ${session.id}`;
+                        li.textContent = session.title;
                         li.dataset.sessionId = session.session_id;
+
+                        if (session.session_id === currentSessionId) {
+                            li.classList.add('active-session');
+                        }
+
                         li.addEventListener('click', () => {
                             loadSessionHistory(session.session_id);
                         });
                         chatHistoryList.appendChild(li);
                     });
-                    // Load the most recent session by default
-                    if (!currentSessionId) {
+                    // If no session is active, load the most recent one
+                    if (!currentSessionId && data.sessions[0]) {
                         loadSessionHistory(data.sessions[0].session_id);
                     }
                 } else {
-                    createNewSession();
+                    // If no sessions exist at all, create one
+                    createNewSession(true); // Pass true to indicate it's the very first session
                 }
             })
             .catch(handleError);
@@ -93,6 +99,17 @@ document.addEventListener('DOMContentLoaded', function () {
         currentSessionId = sessionId;
         chatMessages.innerHTML = '';
         showTypingIndicator();
+
+        // Update active class in history list
+        const listItems = chatHistoryList.querySelectorAll('li');
+        listItems.forEach(item => {
+            if (item.dataset.sessionId === sessionId) {
+                item.classList.add('active-session');
+            } else {
+                item.classList.remove('active-session');
+            }
+        });
+
         fetch(`/api/chat/history/${sessionId}`)
             .then(response => response.json())
             .then(data => {
@@ -108,10 +125,16 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(handleError);
     }
 
-    function createNewSession() {
-        currentSessionId = null;
-        chatMessages.innerHTML = '';
-        displayMessage('Xin chào! Tôi là HSA Chatbot, tôi có thể giúp gì cho bạn?', 'bot');
+    function createNewSession(isFirstSession = false) {
+        fetch('/api/chat/session', { method: 'POST' })
+            .then(response => response.json())
+            .then(sessionData => {
+                currentSessionId = sessionData.session_id;
+                chatMessages.innerHTML = '';
+                displayMessage('Xin chào! Tôi là HSA Chatbot, tôi có thể giúp gì cho bạn?', 'bot');
+                loadChatSessions(); // Refresh the list to show the new session
+            })
+            .catch(handleError);
     }
 
     function handleError(error) {

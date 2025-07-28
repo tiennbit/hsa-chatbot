@@ -10,7 +10,7 @@ from datetime import datetime
 
 def explore_database():
     """Khám phá database"""
-    db_path = "instance/hsa_chatbot.db"
+    db_path = "backend/instance/hsa_chatbot.db"
     
     if not os.path.exists(db_path):
         print(f"❌ Database không tồn tại: {db_path}")
@@ -83,7 +83,7 @@ def explore_database():
 
 def run_sql_query(query):
     """Chạy SQL query tùy chỉnh"""
-    db_path = "instance/hsa_chatbot.db"
+    db_path = "backend/instance/hsa_chatbot.db"
     
     if not os.path.exists(db_path):
         print(f"❌ Database không tồn tại: {db_path}")
@@ -134,4 +134,4 @@ if __name__ == "__main__":
     
     # Chạy query mẫu
     print("\n📊 Thống kê tổng quan:")
-    run_sql_query("SELECT 'Users' as table_name, COUNT(*) as count FROM users UNION ALL SELECT 'Documents', COUNT(*) FROM documents UNION ALL SELECT 'Chat Sessions', COUNT(*) FROM chat_sessions UNION ALL SELECT 'Chat Messages', COUNT(*) FROM chat_messages;") 
+    run_sql_query("SELECT 'Users' as table_name, COUNT(*) as count FROM users UNION ALL SELECT 'Documents', COUNT(*) FROM documents UNION ALL SELECT 'Chat Sessions', COUNT(*) FROM chat_sessions UNION ALL SELECT 'Chat Messages', COUNT(*) FROM chat_messages;")

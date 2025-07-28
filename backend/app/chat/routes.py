@@ -75,12 +75,19 @@ def post_message(session_id):
         user_message = ChatMessage(session_id=session.id, content=message_content, message_type='user')
         db.session.add(user_message)
 
-        # If this is the first message, use it to set the session title
-        if session.message_count == 0:
-            session.title = message_content[:50] # Use first 50 chars as title
-
         # Process with RAG
         rag_processor = RAGProcessor()
+
+        # Update title based on conversation summary
+        if session.message_count == 0:
+            # For the first message, just use the content
+            session.title = message_content[:60]
+        elif session.message_count >= 4 and session.message_count % 2 == 0:
+            # After a few messages, generate a summary for the title
+            full_history = session.get_recent_messages(limit=10) # Get more history for summary
+            history_for_summary = [msg.to_dict() for msg in full_history]
+            new_title = rag_processor.summarize_conversation(history_for_summary)
+            session.title = new_title
         
         # Prepare chat history for RAG processor
         recent_messages = session.get_recent_messages()

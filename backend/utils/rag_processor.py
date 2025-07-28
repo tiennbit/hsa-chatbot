@@ -492,29 +492,17 @@ Trả lời:"""
     def _generate_gemini_response(self, prompt: str) -> Dict[str, Any]:
         """Tạo phản hồi từ Google Gemini"""
         try:
-            # Try gemini-1.5-flash first (faster and more available)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model_name = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
+            model = genai.GenerativeModel(model_name)
             response = model.generate_content(prompt)
             
             return {
                 "response": response.text,
-                "model": "gemini-1.5-flash",
+                "model": model_name,
                 "tokens_used": None  # Gemini doesn't provide token count
             }
         except Exception as e:
-            # Fallback to gemini-1.5-pro if flash is not available
-            try:
-                model = genai.GenerativeModel('gemini-1.5-pro')
-                response = model.generate_content(prompt)
-                
-                return {
-                    "response": response.text,
-                    "model": "gemini-1.5-pro",
-                    "tokens_used": None
-                }
-            except Exception as e2:
-                # Final fallback to fallback response
-                raise Exception(f"Gemini API error: {e2}")
+            raise Exception(f"Gemini API error: {e}")
     
     def _generate_deepseek_response(self, prompt: str) -> Dict[str, Any]:
         """Tạo phản hồi từ DeepSeek"""
@@ -587,6 +575,45 @@ Trả lời:"""
         except Exception as e:
             print(f"Error processing query: {e}")
             return "Xin lỗi, có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau."
+
+    def summarize_conversation(self, chat_history: List[Dict]) -> str:
+        """Tóm tắt cuộc trò chuyện để tạo tiêu đề"""
+        try:
+            if not chat_history:
+                return "Cuộc trò chuyện mới"
+
+            # Prepare conversation text
+            conversation_text = "\n".join(
+                [f"{msg['message_type']}: {msg['content']}" for msg in chat_history]
+            )
+
+            # Create summarization prompt
+            prompt = f"""Hãy tóm tắt ngắn gọn cuộc trò chuyện sau đây thành một tiêu đề không quá 10 từ:
+
+{conversation_text}
+
+Tiêu đề tóm tắt:"""
+
+            # Use default provider for summarization
+            provider = os.getenv('DEFAULT_LLM_PROVIDER', 'gemini')
+            
+            if provider == 'openai' and 'openai' in self.llm_providers:
+                response_data = self._generate_openai_response(prompt)
+            elif provider == 'gemini' and 'gemini' in self.llm_providers:
+                response_data = self._generate_gemini_response(prompt)
+            elif provider == 'deepseek' and 'deepseek' in self.llm_providers:
+                response_data = self._generate_deepseek_response(prompt)
+            else:
+                # Fallback if no provider is available
+                return chat_history[0]['content'][:50]
+
+            summary = response_data.get("response", "").strip().replace('"', '')
+            return summary if summary else chat_history[0]['content'][:50]
+
+        except Exception as e:
+            print(f"Error summarizing conversation: {e}")
+            # Fallback to first message content
+            return chat_history[0]['content'][:50] if chat_history else "Cuộc trò chuyện mới"
     
     def _generate_fallback_response(self, query: str, context_docs: List[Dict[str, Any]]) -> str:
         """Tạo phản hồi fallback khi không có LLM"""
