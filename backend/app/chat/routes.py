@@ -8,6 +8,7 @@ from flask import render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
 from . import chat_bp
 from models.chat import ChatSession, ChatMessage
+from models.unanswered import UnansweredQuestion
 from database import db
 from utils.rag_processor import RAGProcessor
 import uuid
@@ -37,7 +38,7 @@ def create_session():
         new_session = ChatSession(
             user_id=current_user.id,
             session_id=str(uuid.uuid4()),
-            title="Cuộc trò chuyện mới"
+            title=None  # Set title to NULL initially
         )
         db.session.add(new_session)
         db.session.commit()
@@ -78,22 +79,32 @@ def post_message(session_id):
         # Process with RAG
         rag_processor = RAGProcessor()
 
-        # Update title based on conversation summary
-        if session.message_count == 0:
-            # For the first message, just use the content
-            session.title = message_content[:60]
-        elif session.message_count >= 4 and session.message_count % 2 == 0:
-            # After a few messages, generate a summary for the title
-            full_history = session.get_recent_messages(limit=10) # Get more history for summary
-            history_for_summary = [msg.to_dict() for msg in full_history]
-            new_title = rag_processor.summarize_conversation(history_for_summary)
-            session.title = new_title
+        # If the session has no title, set it from the first user message.
+        if session.title is None and message_content:
+            session.title = message_content[:80]
         
         # Prepare chat history for RAG processor
         recent_messages = session.get_recent_messages()
         chat_history_for_rag = [msg.to_dict() for msg in recent_messages]
         
-        response_content = rag_processor.process_query(message_content, chat_history=chat_history_for_rag)
+        response_content, found_context = rag_processor.process_query(
+            query=message_content,
+            chat_history=chat_history_for_rag
+        )
+
+        # If no context was found, save the question as unanswered
+        if not found_context:
+            existing_question = UnansweredQuestion.query.filter_by(
+                question_text=message_content,
+                status='pending'
+            ).first()
+            if not existing_question:
+                unanswered = UnansweredQuestion(
+                    question_text=message_content,
+                    session_id=session.id,
+                    user_id=current_user.id
+                )
+                db.session.add(unanswered)
         
         # Save bot response
         bot_message = ChatMessage(session_id=session.id, content=response_content, message_type='bot')

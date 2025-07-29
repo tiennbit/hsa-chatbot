@@ -364,16 +364,28 @@ class RAGProcessor:
                 where=where_clause if where_clause else None
             )
             
-            # Format results
+            # Check if there are any results and if distances are available
+            if not results or not results['ids'][0] or 'distances' not in results or not results['distances'][0]:
+                return []
+
+            # Define a distance threshold. This is an empirical value.
+            # For L2 distance (default in Chroma), smaller is better.
+            # For cosine similarity, it's 1 - cosine_similarity.
+            # A threshold of 0.6 makes the search much stricter.
+            distance_threshold = 0.6
+
+            # Format and filter results based on the threshold
             search_results = []
             for i in range(len(results['ids'][0])):
-                result = {
-                    "id": results['ids'][0][i],
-                    "document": results['documents'][0][i],
-                    "metadata": results['metadatas'][0][i],
-                    "distance": results['distances'][0][i] if 'distances' in results else None
-                }
-                search_results.append(result)
+                distance = results['distances'][0][i]
+                if distance < distance_threshold:
+                    result = {
+                        "id": results['ids'][0][i],
+                        "document": results['documents'][0][i],
+                        "metadata": results['metadatas'][0][i],
+                        "distance": distance
+                    }
+                    search_results.append(result)
             
             return search_results
             
@@ -440,37 +452,40 @@ class RAGProcessor:
         return "\n\n".join(context_parts)
     
     def _create_prompt(self, query: str, context: str, chat_history: List[Dict] = None) -> str:
-        """Tạo prompt cho LLM"""
-        system_prompt = """Bạn là trợ lý AI hỗ trợ thí sinh tham dự kỳ thi HSA (High School Assessment) của Đại học Quốc gia Hà Nội. 
+        """Tạo prompt cho LLM với cấu trúc cải tiến"""
+        # System prompt defines the AI's role and rules
+        system_prompt = """Bạn là một trợ lý AI chuyên nghiệp, am hiểu về kỳ thi HSA của Đại học Quốc gia Hà Nội.
+Nhiệm vụ của bạn là trả lời câu hỏi của thí sinh một cách chính xác, chi tiết và hữu ích dựa **DUY NHẤT** vào các thông tin trong tài liệu được cung cấp.
 
-HSA (High School Assessment) là kỳ thi đánh giá năng lực học sinh THPT của Đại học Quốc gia Hà Nội, được tổ chức để đánh giá năng lực tư duy định lượng, tư duy định tính và khoa học của học sinh.
+**QUY TẮC BẮT BUỘC:**
+1.  **CHỈ DÙNG THÔNG TIN CÓ SẴN:** Tuyệt đối không sử dụng kiến thức bên ngoài. Mọi thông tin phải bắt nguồn từ các đoạn văn bản trong mục "Thông tin từ tài liệu".
+2.  **TỔNG HỢP THÔNG TIN:** Nếu nhiều tài liệu cùng nói về một chủ đề, hãy tổng hợp các ý lại một cách mạch lạc và tự nhiên. Không cần trích dẫn tên tài liệu.
+3.  **NẾU KHÔNG BIẾT, HÃY NÓI KHÔNG BIẾT:** Nếu không có tài liệu nào chứa thông tin để trả lời câu hỏi, hãy trả lời rằng: "Xin lỗi, tôi không tìm thấy thông tin về vấn đề này trong các tài liệu hiện có."
+4.  **ĐỊNH DẠNG RÕ RÀNG:** Sử dụng Markdown để định dạng câu trả lời cho dễ đọc (in đậm, gạch đầu dòng, v.v.)."""
 
-Nhiệm vụ của bạn:
-- Trả lời các câu hỏi về kỳ thi HSA, quy trình đăng ký, nội dung thi, điểm số, tuyển sinh
-- Cung cấp thông tin chính xác và hữu ích cho thí sinh
-- Sử dụng ngôn ngữ thân thiện, dễ hiểu
-- Nếu không có thông tin trong tài liệu, hãy thành thật nói rằng bạn không biết
-
-Hãy trả lời bằng tiếng Việt và dựa trên thông tin trong các tài liệu được cung cấp."""
-        
-        # Add chat history if available
+        # Format chat history
         history_text = ""
         if chat_history:
-            history_parts = []
-            for msg in chat_history[-5:]:  # Last 5 messages
-                role = "Người dùng" if msg.get("message_type") == "user" else "Trợ lý"
-                history_parts.append(f"{role}: {msg.get('content', '')}")
-            history_text = f"\n\nLịch sử trò chuyện:\n" + "\n".join(history_parts)
-        
+            history_parts = ["Lịch sử trò chuyện gần đây:"]
+            for msg in chat_history[-4:]:  # Last 4 messages for context
+                role = "Thí sinh" if msg.get("message_type") == "user" else "Trợ lý"
+                history_parts.append(f"- {role}: {msg.get('content', '')}")
+            history_text = "\n".join(history_parts)
+
+        # Construct the final prompt
         prompt = f"""{system_prompt}
 
-Thông tin từ tài liệu:
-{context}
+---
+**Thông tin từ tài liệu:**
+{context if context else "Không có tài liệu nào được tìm thấy."}
+
+---
 {history_text}
 
-Câu hỏi của thí sinh: {query}
+---
+**Câu hỏi của thí sinh:** {query}
 
-Trả lời:"""
+**Trả lời của bạn (tuân thủ nghiêm ngặt các quy tắc trên):**"""
         
         return prompt
     
@@ -542,39 +557,46 @@ Trả lời:"""
             print(f"Error deleting vectors: {e}")
             return False
     
-    def process_query(self, query: str, chat_history: List[Dict] = None) -> str:
-        """Xử lý câu hỏi và trả về phản hồi"""
+    def process_query(self, query: str, chat_history: List[Dict] = None) -> (str, bool):
+        """
+        Xử lý câu hỏi và trả về phản hồi cùng với trạng thái tìm thấy context.
+        Returns:
+            tuple: (response_text, found_context)
+        """
         try:
             # Tìm kiếm tài liệu liên quan
-            context_docs = self.search_documents(query, n_results=3)
+            context_docs = self.search_documents(query, n_results=5)
 
-            # Tạo phản hồi
+            # Nếu tìm thấy context, tạo câu trả lời từ LLM
             if context_docs:
                 try:
-                    # Sử dụng LLM provider mặc định
                     default_provider = os.getenv('DEFAULT_LLM_PROVIDER', 'gemini')
                     response_data = self.generate_response(query, context_docs, provider=default_provider, chat_history=chat_history)
                     
-                    # Check if response_data has the expected structure
-                    if isinstance(response_data, dict) and "response" in response_data:
-                        return response_data["response"]
-                    elif isinstance(response_data, str):
-                        return response_data
-                    else:
-                        print(f"Unexpected response format: {response_data}")
-                        return self._generate_fallback_response(query, context_docs)
+                    if isinstance(response_data, dict) and response_data.get("success"):
+                        response_text = response_data["response"]
+                        # Check if the LLM generated an "I don't know" response.
+                        # This phrase comes from the system prompt.
+                        i_dont_know_phrase = "tôi không tìm thấy thông tin về"
                         
+                        # If the LLM couldn't answer, we consider the context not truly found for logging purposes.
+                        final_found_context = i_dont_know_phrase not in response_text.lower()
+                        
+                        return response_text, final_found_context
+                    else:
+                        # Lỗi từ LLM, dùng fallback nhưng vẫn báo là đã tìm thấy context
+                        return self._generate_fallback_response(query, context_docs), True
                 except Exception as e:
                     print(f"Error generating response with LLM: {e}")
-                    # Fallback response based on context
-                    return self._generate_fallback_response(query, context_docs)
+                    # If LLM fails, we should consider it unanswered for review purposes.
+                    return self._generate_fallback_response(query, context_docs), False
+            # Nếu không tìm thấy context, trả về câu trả lời mặc định
             else:
-                # Không tìm thấy tài liệu liên quan, sử dụng fallback
-                return self._generate_fallback_response(query, [])
+                return self._generate_fallback_response(query, []), False
 
         except Exception as e:
             print(f"Error processing query: {e}")
-            return "Xin lỗi, có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau."
+            return "Xin lỗi, có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.", False
 
     def summarize_conversation(self, chat_history: List[Dict]) -> str:
         """Tóm tắt cuộc trò chuyện để tạo tiêu đề"""
@@ -647,4 +669,4 @@ Tiêu đề tóm tắt:"""
             doc_content = context_docs[0]["document"][:500]  # First 500 chars
             return f"Dựa trên thông tin tài liệu: {doc_content}...\n\nĐây là thông tin cơ bản về câu hỏi của bạn. Để biết thêm chi tiết, vui lòng tham khảo tài liệu chính thức."
         else:
-            return "Xin chào! Tôi là trợ lý AI hỗ trợ thí sinh tham dự kỳ thi HSA. Hiện tại tôi chưa có đủ thông tin để trả lời câu hỏi của bạn. Bạn có thể hỏi về kỳ thi HSA, quy trình đăng ký, hoặc nội dung thi."
+            return "Xin lỗi, tôi không tìm thấy thông tin về vấn đề này trong các tài liệu hiện có."
